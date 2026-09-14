@@ -1,0 +1,9 @@
+[
+{% for product in products %}
+  {
+    "article": {{ product.article }},
+    "name": "{{ product.name }}",
+    "price": "{{ product.price }}"
+  }{% if not forloop.last %},{% endif %}
+{% endfor %}
+]

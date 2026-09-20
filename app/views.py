@@ -1,8 +1,10 @@
+from json import loads
 from django.http import JsonResponse
 from django.views import View
 from .models import Tasks, Tags
+from .forms import TasksForm, TagsForm
 
-# задачи
+
 class TasksView(View):
     def get(self, request):
         tasks = Tasks.objects.all()
@@ -18,6 +20,28 @@ class TasksView(View):
         return JsonResponse(obj)
 
     def post(self, request):
+        new_data = loads(request.body)
+        form = TasksForm(new_data)
+        if form.is_valid():
+            task = form.save()
+            obj = {
+                'data': {
+                    'id': task.id,
+                    'title': task.title,
+                    'description': task.description,
+                    'done': task.done,
+                }
+            }
+            return JsonResponse(obj, status=201)
+        return JsonResponse(
+            {'status': 'error', 'code': 400},
+            status=400
+        )
+
+    def patch(self, request):
+        pass
+
+    def delete(self, request):
         pass
 
 
@@ -40,7 +64,7 @@ class TaskByIdView(View):
     def get(self, request, id):
         task = Tasks.objects.filter(id=id).first()
         if not task:
-            return JsonResponse({'error': 'Not found'}, status=404)
+            return JsonResponse({'error': 'Not Found'}, status=404)
         obj = {
             'data': {
                 'id': task.id,
@@ -51,8 +75,27 @@ class TaskByIdView(View):
         }
         return JsonResponse(obj)
 
-    def put(self, request, id):
-        pass
+    def post(self, request, id):
+        task = Tasks.objects.filter(id=id).first()
+        if not task:
+            return JsonResponse({'error': 'Not Found'}, status=404)
+        new_data = loads(request.body)
+        form = TasksForm(new_data, instance=task)
+        if form.is_valid():
+            task = form.save()
+            obj = {
+                'data': {
+                    'id': task.id,
+                    'title': task.title,
+                    'description': task.description,
+                    'done': task.done,
+                }
+            }
+            return JsonResponse(obj)
+        return JsonResponse(
+            {'status': 'error', 'code': 400},
+            status=400
+        )
 
     def patch(self, request, id):
         pass
@@ -76,8 +119,6 @@ class TasksByTagView(View):
         return JsonResponse(obj)
 
 
-# теги
-
 class TagsView(View):
     def get(self, request):
         tags = Tags.objects.all()
@@ -91,17 +132,46 @@ class TagsView(View):
         return JsonResponse(obj)
 
     def post(self, request):
+        new_data = loads(request.body)
+        form = TagsForm(new_data)
+        if form.is_valid():
+            tag = form.save()
+            obj = {'data': {'id': tag.id, 'name': tag.name}}
+            return JsonResponse(obj, status=201)
+        return JsonResponse(
+            {'status': 'error', 'code': 400},
+            status=400
+        )
+
+    def patch(self, request):
+        pass
+
+    def delete(self, request):
         pass
 
 
 class TagsByIdView(View):
-    def put(self, request, id):
+    def post(self, request, id):
+        tag = Tags.objects.filter(id=id).first()
+        if not tag:
+            return JsonResponse({'error': 'Not Found'}, status=404)
+        new_data = loads(request.body)
+        form = TagsForm(new_data, instance=tag)
+        if form.is_valid():
+            tag = form.save()
+            obj = {'data': {'id': tag.id, 'name': tag.name}}
+            return JsonResponse(obj)
+        return JsonResponse(
+            {'status': 'error', 'code': 400},
+            status=400
+        )
+
+    def patch(self, request, id):
         pass
 
     def delete(self, request, id):
         pass
 
-# теги в задачах
 
 class TasksTagsView(View):
     def get(self, request):
@@ -117,11 +187,38 @@ class TasksTagsView(View):
         return JsonResponse(obj)
 
     def post(self, request):
+        new_data = loads(request.body)
+        task_id = new_data.get('task_id')
+        tag_id = new_data.get('tag_id')
+
+        task = Tasks.objects.filter(id=task_id).first()
+        tag = Tags.objects.filter(id=tag_id).first()
+
+        if not task or not tag:
+            return JsonResponse(
+                {'status': 'error', 'code': 404},
+                status=404
+            )
+
+        task.tags.add(tag)
+        obj = {'data': {'task_id': task.id, 'tag_id': tag.id}}
+        return JsonResponse(obj, status=201)
+
+    def patch(self, request):
+        pass
+
+    def delete(self, request):
         pass
 
 
 class TasksTagsByIdView(View):
-    def delete(self, request, id):
+    def post(self, request, task_id, tag_id):
+        pass
+
+    def patch(self, request, task_id, tag_id):
+        pass
+
+    def delete(self, request, task_id, tag_id):
         pass
 
 
@@ -129,7 +226,7 @@ class TasksTagsByTaskView(View):
     def get(self, request, task_id):
         task = Tasks.objects.filter(id=task_id).first()
         if not task:
-            return JsonResponse({'error': 'Not found'}, status=404)
+            return JsonResponse({'error': 'Not Found'}, status=404)
         tag_list = []
         for tag in task.tags.all():
             tag_list.append({

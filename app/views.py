@@ -1,10 +1,13 @@
 from json import loads
 from django.http import JsonResponse
 from django.views import View
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from .models import Tasks, Tags
 from .forms import TasksForm, TagsForm
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class TasksView(View):
     def get(self, request):
         tasks = Tasks.objects.all()
@@ -44,7 +47,7 @@ class TasksView(View):
     def delete(self, request):
         pass
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class TasksUndoneView(View):
     def get(self, request):
         tasks = Tasks.objects.filter(done=False)
@@ -59,7 +62,7 @@ class TasksUndoneView(View):
         obj = {'data': task_list}
         return JsonResponse(obj)
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class TaskByIdView(View):
     def get(self, request, id):
         task = Tasks.objects.filter(id=id).first()
@@ -75,7 +78,7 @@ class TaskByIdView(View):
         }
         return JsonResponse(obj)
 
-    def post(self, request, id):
+    def put(self, request, id):
         task = Tasks.objects.filter(id=id).first()
         if not task:
             return JsonResponse({'error': 'Not Found'}, status=404)
@@ -103,7 +106,7 @@ class TaskByIdView(View):
     def delete(self, request, id):
         pass
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class TasksByTagView(View):
     def get(self, request, tag_id):
         tasks = Tasks.objects.filter(tags__id=tag_id)
@@ -118,7 +121,7 @@ class TasksByTagView(View):
         obj = {'data': task_list}
         return JsonResponse(obj)
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class TagsView(View):
     def get(self, request):
         tags = Tags.objects.all()
@@ -149,7 +152,7 @@ class TagsView(View):
     def delete(self, request):
         pass
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class TagsByIdView(View):
     def post(self, request, id):
         tag = Tags.objects.filter(id=id).first()
@@ -172,7 +175,7 @@ class TagsByIdView(View):
     def delete(self, request, id):
         pass
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class TasksTagsView(View):
     def get(self, request):
         tasks = Tasks.objects.prefetch_related('tags').all()
@@ -210,18 +213,13 @@ class TasksTagsView(View):
     def delete(self, request):
         pass
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class TasksTagsByIdView(View):
-    def post(self, request, task_id, tag_id):
-        pass
-
-    def patch(self, request, task_id, tag_id):
-        pass
 
     def delete(self, request, task_id, tag_id):
         pass
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class TasksTagsByTaskView(View):
     def get(self, request, task_id):
         task = Tasks.objects.filter(id=task_id).first()

@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 
+
 urlpatterns = [
     path('tasks', views.TasksView.as_view()),
     path('tasks/undone', views.TasksUndoneView.as_view()),
@@ -11,6 +12,12 @@ urlpatterns = [
     path('tags/<int:id>', views.TagsByIdView.as_view()),
 
     path('tasks_tags', views.TasksTagsView.as_view()),
-    path('tasks_tags/<int:task_id>/<int:tag_id>', views.TasksTagsByIdView.as_view()),
-    path('tasks_tags_by_task/<int:task_id>', views.TasksTagsByTaskView.as_view()),
+    path(
+        'tasks_tags/<int:task_id>/<int:tag_id>',
+        views.TasksTagsByIdView.as_view()
+    ),
+    path(
+        'tasks_tags_by_task/<int:task_id>',
+        views.TasksTagsByTaskView.as_view()
+    ),
 ]

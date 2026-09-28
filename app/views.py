@@ -115,23 +115,10 @@ class TaskByIdView(View):
 
         if form.is_valid():
             task = form.save()
-
-            obj = {
-                'data': {
-                    'id': task.id,
-                    'title': task.title,
-                    'description': task.description,
-                    'done': task.done,
-                }
-            }
-
-            return JsonResponse(obj)
+            return self.get(request, id)
 
         return JsonResponse(
-            {
-                'status': 'error',
-                'code': 400
-            },
+            {'status': 'error', 'errors': form.errors},
             status=400
         )
 
@@ -225,17 +212,14 @@ class TagsByIdView(View):
     def put(self, request, id):
         tag = get_object_or_404(Tags, id=id)
         new_data = loads(request.body)
-
         form = TagsForm(new_data, instance=tag)
 
         if form.is_valid():
             tag = form.save()
-
-            return JsonResponse({'data': 
-                                 {'id': tag.id,
-                                  'name': tag.name}})
-
-        return JsonResponse({'status': 'error','code': 400}, status=400)
+            return self.get(request, id)
+            
+        return JsonResponse({'status': 'error','errors': form.errors}, 
+                            status=400)
 
     def patch(self, request, id):
         pass

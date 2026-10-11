@@ -4,9 +4,9 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
+from django.forms.models import model_to_dict
 from .models import Tasks, Tags
 from .forms import TasksForm, TagsForm
-from django.forms.models import model_to_dict
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -86,8 +86,10 @@ class TaskByIdView(View):
     # PATCH /tasks/<id>
     def patch(self, request, id):
         task = get_object_or_404(Tasks, id=id)
+        dict_from_request = loads(request.body)
+
         merged = model_to_dict(task)
-        merged.update(loads(request.body))
+        merged.update(dict_from_request)
 
         form = TasksForm(merged, instance=task)
         if form.is_valid():
@@ -168,8 +170,10 @@ class TagsByIdView(View):
     # PATCH /tags/<id>
     def patch(self, request, id):
         tag = get_object_or_404(Tags, id=id)
+        dict_from_request = loads(request.body)
+
         merged = model_to_dict(tag)
-        merged.update(loads(request.body))
+        merged.update(dict_from_request)
 
         form = TagsForm(merged, instance=tag)
         if form.is_valid():
